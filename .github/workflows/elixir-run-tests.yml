@@ -12,26 +12,26 @@ on:
         required: true
         type: boolean
 
-strategy:
-  matrix:
-    # See https://hexdocs.pm/elixir/compatibility-and-deprecations.html#compatibility-between-elixir-and-erlang-otp
-    otp: ["24.x", "25.x", "26.x", "27.x"]
-    elixir: ["1.15.x", "1.16.x", "1.17.x", "1.18.x"]
-    exclude:
-      # OTP 24
-      - elixir: "1.17.x"
-        otp: "24.x"
-      - elixir: "1.18.x"
-        otp: "24.x"
-      # OTP 27
-      - elixir: "1.15.x"
-        otp: "27.x"
-      - elixir: "1.16.x"
-        otp: "27.x"
 jobs:
   elixir-test:
     runs-on: ubuntu-latest
     name: Test - OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
+    strategy:
+      matrix:
+        # See https://hexdocs.pm/elixir/compatibility-and-deprecations.html#compatibility-between-elixir-and-erlang-otp
+        otp: ["24.x", "25.x", "26.x", "27.x"]
+        elixir: ["1.15.x", "1.16.x", "1.17.x", "1.18.x"]
+        exclude:
+          # OTP 24
+          - elixir: "1.17.x"
+            otp: "24.x"
+          - elixir: "1.18.x"
+            otp: "24.x"
+          # OTP 27
+          - elixir: "1.15.x"
+            otp: "27.x"
+          - elixir: "1.16.x"
+            otp: "27.x"
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
