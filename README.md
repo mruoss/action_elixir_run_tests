@@ -9,5 +9,6 @@ jobs:
   call-reusable:
     uses: mruoss/action_elixir_run_tests/.github/workflows/elixir-run-tests@main
     with:
-      input1: "Hello from caller"
+      checkout: true
+      warnings-as-erros: true
 ```
