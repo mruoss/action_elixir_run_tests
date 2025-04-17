@@ -1,5 +1,4 @@
 name: "Setup OTP & Elixir, Get Deps, Compile, Run Tests"
-author: "Michael Ruoss"
 description: "For all current Elixir/OTP combinations: Setup OTP & Elixir, Get Deps, Compile, Run Tests"
 on:
   workflow_call:
