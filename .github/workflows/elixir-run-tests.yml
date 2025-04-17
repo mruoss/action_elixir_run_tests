@@ -32,6 +32,7 @@ strategy:
 jobs:
   elixir-test:
     runs-on: ubuntu-latest
+    name: Test - OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
