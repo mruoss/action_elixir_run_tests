@@ -9,9 +9,17 @@ on:
         description: "Whether warning during compilation should be shown as errors and mark the workflow as failed."
         type: boolean
         default: true
+      with-kubernetes:
+        description: "Whether to setup a Kubernetes cluster with Kind."
+        type: boolean
 
 env:
   MIX_ENV: test
+  # renovate: datasource=github-releases depName=kubernetes-sigs/kind
+  KIND_VERSION: v0.27.0
+  # renovate: datasource=docker depName=kindest/node
+  KUBERNETES_VERSION: v1.32.2
+  KUBECONFIG: /home/runner/.kube/config
 
 jobs:
   elixir-test:
@@ -37,6 +45,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.2.2
         if: inputs.checkout != false
+
+      - name: Setup Kubernetes
+        if: inputs.with-kubernetes == true
+        uses: engineerd/setup-kind@v0.5.0
+        id: kind
+        with:
+          version: ${{ env.KIND_VERSION }}
+          image: kindest/node:${{ env.KUBERNETES_VERSION }}
 
       - name: Setup elixir
         id: beam
