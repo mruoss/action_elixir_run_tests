@@ -36,8 +36,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
-        if: inputs.checkout != 'false'
-      - uses: erlef/setup-beam@v1
+        if: inputs.checkout != false
+
+      - name: Setup elixir
+        id: beam
+        uses: erlef/setup-beam@v1
         with:
           otp-version: ${{matrix.otp}}
           elixir-version: ${{matrix.elixir}}
@@ -63,11 +66,11 @@ jobs:
 
       - name: Compile Application / Library
         run: mix compile --warnings-as-errors
-        if: inputs.warnings-as-errors == 'true'
+        if: inputs.warnings-as-errors == true
 
       - name: Compile Application / Library
         run: mix compile
-        if: inputs.warnings-as-errors != 'true'
+        if: inputs.warnings-as-errors != true
 
       - name: Run Tests
         run: mix test

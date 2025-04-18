@@ -16,14 +16,20 @@ on:
         description: "How to run credo. Set to 'false' to to omit, set to 'strict' to force strict analysis, set to 'true' for non-strict analysis. Default: 'strict'"
         type: string
         default: "strict"
-      run-dialyter:
+      run-dialyzer:
         description: "Whether to run the dialyzer"
         type: boolean
         default: true
+    secrets:
+      token:
+        description: "The github token"
+        required: true
+
 env:
   MIX_ENV: test
-  KIND_VERSION: 0.27.0
-  KUBERNETES_VERSION: v1.29.0
+  KIND_VERSION: v0.27.0
+  KUBERNETES_VERSION: v1.32.2
+  KUBECONFIG: /home/runner/.kube/config
 
 jobs:
   code_quality:
@@ -31,15 +37,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
-        if: inputs.checkout != 'false'
+        if: inputs.checkout != false
 
       - name: Setup Kubernetes
         if: inputs.with-kubernetes == true
         uses: engineerd/setup-kind@v0.5.0
         id: kind
         with:
-          version: $KIND_VERSION
-          image: kindest/node:$KUBERNETES_VERSION
+          version: ${{ env.KIND_VERSION }}
+          image: kindest/node:${{ env.KUBERNETES_VERSION }}
 
       - name: Setup elixir
         id: beam
@@ -80,29 +86,29 @@ jobs:
         run: mix deps.get
 
       - name: Check Formatting
-        if: inputs.check-formatting != 'false'
+        if: inputs.check-formatting != false
         run: mix format --check-formatted
 
-      - name: Run Credo
+      - name: Run Credo (Not Strict)
         if: inputs.run-credo == 'strict'
         run: mix credo --strict
 
-      - name: Run Credo
-        if: "inputs.run-credo != 'strict' && inputs.run-credo != 'false'"
+      - name: Run Credo (Strict)
+        if: "inputs.run-credo != 'strict' && inputs.run-credo != false"
         run: mix credo --strict
 
       - name: Run Coverage
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.token }}
         run: mix coveralls.github --include integration
 
       # Create PLTs if no cache was found
       - name: Create PLTs
-        if: "inputs.run-dialyzer == 'true' && steps.plt-cache.outputs.cache-hit != 'true'"
+        if: "inputs.run-dialyzer == true && steps.plt-cache.outputs.cache-hit != 'true'"
         run: |
           mkdir -p priv/plts
           mix dialyzer --plt
 
       - name: Run dialyzer
-        if: inputs.run-dialyzer == 'true'
+        if: inputs.run-dialyzer == true
         run: mix dialyzer --format github
