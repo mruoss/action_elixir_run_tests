@@ -10,6 +10,9 @@ on:
         type: boolean
         default: true
 
+env:
+  MIX_ENV: test
+
 jobs:
   elixir-test:
     runs-on: ubuntu-latest
