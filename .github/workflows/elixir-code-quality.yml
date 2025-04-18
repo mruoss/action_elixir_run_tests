@@ -71,7 +71,7 @@ jobs:
           key: ${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Retrieve PLT Cache
-        if: inputs.run-dialyzer == 'true'
+        if: inputs.run-dialyzer == true
         uses: actions/cache@v4
         id: plt-cache
         with:
