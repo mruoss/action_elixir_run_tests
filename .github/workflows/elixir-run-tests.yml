@@ -1,16 +1,14 @@
 name: "Setup OTP & Elixir, Get Deps, Compile, Run Tests"
-description: "For all current Elixir/OTP combinations: Setup OTP & Elixir, Get Deps, Compile, Run Tests"
 on:
   workflow_call:
     inputs:
       checkout:
         description: "Whether to check out the code. Set to `false` to disable this, e.g. if you have already done this."
-        required: true
         type: boolean
       warnings-as-errors:
         description: "Whether warning during compilation should be shown as errors and mark the workflow as failed."
-        required: true
         type: boolean
+        default: true
 
 jobs:
   elixir-test:
@@ -48,14 +46,14 @@ jobs:
         id: build-folder-cache
         with:
           path: _build
-          key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-build-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: ${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-build-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Retrieve Mix Dependencies Cache
         uses: actions/cache@v4
         id: mix-cache
         with:
           path: deps
-          key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: ${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-build-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Install Mix Dependencies
         run: mix deps.get

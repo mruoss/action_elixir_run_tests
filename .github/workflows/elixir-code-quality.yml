@@ -1,0 +1,108 @@
+name: Code Quality
+on:
+  workflow_call:
+    inputs:
+      checkout:
+        description: "Whether to check out the code. Set to `false` to disable this, e.g. if you have already done this."
+        type: boolean
+      with-kubernetes:
+        description: "Whether to setup a Kubernetes cluster with Kind."
+        type: boolean
+      check-formatting:
+        description: "Whether to run the format checker."
+        type: boolean
+        default: true
+      run-credo:
+        description: "How to run credo. Set to 'false' to to omit, set to 'strict' to force strict analysis, set to 'true' for non-strict analysis. Default: 'strict'"
+        type: string
+        default: "strict"
+      run-dialyter:
+        description: "Whether to run the dialyzer"
+        type: boolean
+        default: true
+env:
+  MIX_ENV: test
+  KIND_VERSION: 0.27.0
+  KUBERNETES_VERSION: v1.29.0
+
+jobs:
+  code_quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+        if: inputs.with-kubernetes != 'false'
+
+      - name: Setup Kubernetes
+        if: inputs.with-kubernetes == 'true'
+        uses: engineerd/setup-kind@v0.5.0
+        id: kind
+        with:
+          version: $KIND_VERSION
+          image: kindest/node:$KUBERNETES_VERSION
+
+      - name: Setup elixir
+        id: beam
+        uses: erlef/setup-beam@v1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+          install-rebar: true
+          install-hex: true
+
+      - name: Retrieve Build Cache
+        uses: actions/cache@v4
+        id: build-folder-cache
+        with:
+          path: _build
+          key: ${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-build-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Retrieve Mix Dependencies Cache
+        uses: actions/cache@v4
+        id: mix-cache
+        with:
+          path: deps
+          key: ${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Retrieve PLT Cache
+        if: inputs.run-dialyzer == 'true'
+        uses: actions/cache@v4
+        id: plt-cache
+        with:
+          key: |
+            ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-plts
+          restore-keys: |
+            ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-plts
+          path: |
+            priv/plts
+
+      - name: Install Mix Dependencies
+        run: mix deps.get
+
+      - name: Check Formatting
+        if: inputs.check-formatting != 'false'
+        run: mix format --check-formatted
+
+      - name: Run Credo
+        if: inputs.run-credo == 'strict'
+        run: mix credo --strict
+
+      - name: Run Credo
+        if: inputs.run-credo != 'strict' and inputs.run-credo != 'false'
+        run: mix credo --strict
+
+      - name: Run Coverage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: mix coveralls.github --include integration
+
+      # Create PLTs if no cache was found
+      - name: Create PLTs
+        if: inputs.run-dialyzer == 'true' steps.plt-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p priv/plts
+          mix dialyzer --plt
+
+      - name: Run dialyzer
+        if: inputs.run-dialyzer == 'true'
+        run: mix dialyzer --format github
