@@ -98,7 +98,7 @@ jobs:
 
       # Create PLTs if no cache was found
       - name: Create PLTs
-        if: inputs.run-dialyzer == 'true' steps.plt-cache.outputs.cache-hit != 'true'
+        if: "inputs.run-dialyzer == 'true' && steps.plt-cache.outputs.cache-hit != 'true'"
         run: |
           mkdir -p priv/plts
           mix dialyzer --plt
