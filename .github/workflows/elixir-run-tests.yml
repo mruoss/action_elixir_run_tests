@@ -12,6 +12,10 @@ on:
       with-kubernetes:
         description: "Whether to setup a Kubernetes cluster with Kind."
         type: boolean
+      include-integration-tests:
+        description: "Whether to run include tests in test run."
+        type: boolean
+        default: false
 
 env:
   MIX_ENV: test
@@ -89,4 +93,9 @@ jobs:
         if: inputs.warnings-as-errors != true
 
       - name: Run Tests
+        if: inputs.include-integration-tests != true
         run: mix test
+
+      - name: Run Tests incl. integration tests
+        if: inputs.include-integration-tests == true
+        run: mix test --include integration
