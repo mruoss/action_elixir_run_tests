@@ -88,7 +88,7 @@ jobs:
         run: mix credo --strict
 
       - name: Run Credo
-        if: inputs.run-credo != 'strict' and inputs.run-credo != 'false'
+        if: "inputs.run-credo != 'strict' && inputs.run-credo != 'false'"
         run: mix credo --strict
 
       - name: Run Coverage
