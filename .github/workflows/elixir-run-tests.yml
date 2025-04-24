@@ -16,6 +16,10 @@ on:
         description: "Whether to run include tests in test run."
         type: boolean
         default: false
+      compile-for:
+        description: "What env to compile the app for (defaults to test)."
+        type: string
+        default: test
 
 env:
   MIX_ENV: test
@@ -87,10 +91,14 @@ jobs:
       - name: Compile Application / Library
         run: mix compile --warnings-as-errors
         if: inputs.warnings-as-errors == true
+        env:
+          MIX_ENV: ${{ inputs.compile-for }}
 
       - name: Compile Application / Library
         run: mix compile
         if: inputs.warnings-as-errors != true
+        env:
+          MIX_ENV: ${{ inputs.compile-for }}
 
       - name: Run Tests
         if: inputs.include-integration-tests != true
