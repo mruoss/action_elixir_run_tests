@@ -35,7 +35,7 @@ env:
   # renovate: datasource=docker depName=kindest/node
   KUBERNETES_VERSION: v1.32.2
   KUBECONFIG: /home/runner/.kube/config
-  MISE_ENV_FILE: .env.ci
+  MISE_ENV: ci
 
 jobs:
   code_quality:
