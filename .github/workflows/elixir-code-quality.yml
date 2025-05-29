@@ -46,13 +46,9 @@ jobs:
         if: inputs.checkout != false
 
       - name: Setup Mise JDX
-        id: setup-mise
-        if: inputs.with-mise == true
-        run: |
-          curl https://mise.run | sh
-          echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
-          echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
-          mise trust
+        uses: jdx/mise-action@v2
+        with:
+          install: false
 
       - name: Setup Kubernetes
         if: inputs.with-kubernetes == true
