@@ -12,6 +12,9 @@ on:
       with-kubernetes:
         description: "Whether to setup a Kubernetes cluster with Kind."
         type: boolean
+      with-mise:
+        description: "Whether to install mise (JDX)."
+        type: boolean
       include-integration-tests:
         description: "Whether to run include tests in test run."
         type: boolean
@@ -28,6 +31,7 @@ env:
   # renovate: datasource=docker depName=kindest/node
   KUBERNETES_VERSION: v1.32.2
   KUBECONFIG: /home/runner/.kube/config
+  MISE_ENV_FILE: .env.ci
 
 jobs:
   elixir-test:
@@ -53,6 +57,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.2.2
         if: inputs.checkout != false
+
+      - name: Setup Mise JDY
+        id: setup-mise
+        if: inputs.with-mise == true
+        run: |
+          curl https://mise.run | sh
+          echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
+          echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
+          mise trust
 
       - name: Setup Kubernetes
         if: inputs.with-kubernetes == true

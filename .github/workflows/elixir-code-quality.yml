@@ -8,6 +8,9 @@ on:
       with-kubernetes:
         description: "Whether to setup a Kubernetes cluster with Kind."
         type: boolean
+      with-mise:
+        description: "Whether to install mise (JDX)."
+        type: boolean
       check-formatting:
         description: "Whether to run the format checker."
         type: boolean
@@ -40,6 +43,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.2.2
         if: inputs.checkout != false
+
+      - name: Setup Mise JDY
+        id: setup-mise
+        if: inputs.with-mise == true
+        run: |
+          curl https://mise.run | sh
+          echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
+          echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
+          mise trust
 
       - name: Setup Kubernetes
         if: inputs.with-kubernetes == true
