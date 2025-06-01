@@ -27,7 +27,7 @@ on:
 env:
   MIX_ENV: test
   # renovate: datasource=github-releases depName=kubernetes-sigs/kind
-  KIND_VERSION: v0.27.0
+  KIND_VERSION: v0.29.0
   # renovate: datasource=docker depName=kindest/node
   KUBERNETES_VERSION: v1.33.1
   KUBECONFIG: /home/runner/.kube/config
