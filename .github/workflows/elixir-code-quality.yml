@@ -20,6 +20,10 @@ on:
         description: "Whether to run the dialyzer"
         type: boolean
         default: true
+      mix-test-timeout:
+        description: "Sets the timeout on the mix test call (ms)."
+        type: number
+        default: 60000
     secrets:
       token:
         description: "The github token"
@@ -110,7 +114,7 @@ jobs:
 
       - name: Run Coverage
         shell: bash -l {0}
-        run: mix coveralls.github --include integration
+        run: mix coveralls.github --include integration --timeout ${{ inputs.mix-test-timeout }}
 
       # Create PLTs if no cache was found
       - name: Create PLTs

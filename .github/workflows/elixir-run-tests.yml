@@ -20,6 +20,10 @@ on:
         description: "What env to compile the app for (defaults to test)."
         type: string
         default: test
+      mix-test-timeout:
+        description: "Sets the timeout on the mix test call (ms)."
+        type: number
+        default: 60000
     secrets:
       token:
         description: "The github token"
@@ -119,9 +123,9 @@ jobs:
       - name: Run Tests
         if: inputs.include-integration-tests != true
         shell: bash -l {0}
-        run: mix test
+        run: mix test --timeout ${{ inputs.mix-test-timeout }}
 
       - name: Run Tests incl. integration tests
         if: inputs.include-integration-tests == true
         shell: bash -l {0}
-        run: mix test --include integration
+        run: mix test --include integration --timeout ${{ inputs.mix-test-timeout }}
