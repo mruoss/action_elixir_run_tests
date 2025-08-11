@@ -65,7 +65,7 @@ jobs:
             otp: "28.x"
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4.3.0
         if: inputs.checkout != false
 
       - name: Setup Mise JDX
