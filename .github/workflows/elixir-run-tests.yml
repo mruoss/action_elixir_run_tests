@@ -43,26 +43,26 @@ jobs:
       fail-fast: false
       matrix:
         # See https://hexdocs.pm/elixir/compatibility-and-deprecations.html#compatibility-between-elixir-and-erlang-otp
-        otp: ["24.x", "25.x", "26.x", "27.x", "28.x"]
-        elixir: ["1.15.x", "1.16.x", "1.17.x", "1.18.x"]
+        otp: ["24", "25", "26", "27", "28"]
+        elixir: ["1.15", "1.16", "1.17", "1.18"]
         exclude:
           # OTP 24
-          - elixir: "1.17.x"
-            otp: "24.x"
-          - elixir: "1.18.x"
-            otp: "24.x"
+          - elixir: "1.17"
+            otp: "24"
+          - elixir: "1.18"
+            otp: "24"
           # OTP 27
-          - elixir: "1.15.x"
-            otp: "27.x"
-          - elixir: "1.16.x"
-            otp: "27.x"
+          - elixir: "1.15"
+            otp: "27"
+          - elixir: "1.16"
+            otp: "27"
           # OTP 28
-          - elixir: "1.15.x"
-            otp: "28.x"
-          - elixir: "1.16.x"
-            otp: "28.x"
-          - elixir: "1.17.x"
-            otp: "28.x"
+          - elixir: "1.15"
+            otp: "28"
+          - elixir: "1.16"
+            otp: "28"
+          - elixir: "1.17"
+            otp: "28"
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
@@ -79,17 +79,7 @@ jobs:
         if: inputs.with-kubernetes == true
         id: kind
         run: |
-          mise install kind
-          kind create cluster --image $KUBERNETES_NODE_IMAGE
-
-      - name: Setup elixir
-        id: beam
-        uses: erlef/setup-beam@v1
-        with:
-          otp-version: ${{matrix.otp}}
-          elixir-version: ${{matrix.elixir}}
-          install-rebar: true
-          install-hex: true
+          mix c kind -- kind create cluster --image $KUBERNETES_NODE_IMAGE
 
       - name: Retrieve Build Cache
         uses: actions/cache@v4
@@ -105,17 +95,20 @@ jobs:
           path: deps
           key: ${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-build-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
+      - name: Install Hex
+        run: mise x elixir@${{ steps.beam.outputs.elixir-version }} erlang@${{ steps.beam.outputs.otp-version }} rebar -- mix local.hex --force
+
       - name: Install Mix Dependencies
-        run: mix deps.get
+        run: mise x elixir@${{ steps.beam.outputs.elixir-version }} erlang@${{ steps.beam.outputs.otp-version }} rebar -- mix deps.get
 
       - name: Compile Application / Library
-        run: mix compile --warnings-as-errors
+        run: mise x elixir@${{ steps.beam.outputs.elixir-version }} erlang@${{ steps.beam.outputs.otp-version }} rebar -- mix compile --warnings-as-errors
         if: inputs.warnings-as-errors == true
         env:
           MIX_ENV: ${{ inputs.compile-for }}
 
       - name: Compile Application / Library
-        run: mix compile
+        run: mise x elixir@${{ steps.beam.outputs.elixir-version }} erlang@${{ steps.beam.outputs.otp-version }} rebar -- mix compile
         if: inputs.warnings-as-errors != true
         env:
           MIX_ENV: ${{ inputs.compile-for }}
@@ -123,9 +116,9 @@ jobs:
       - name: Run Tests
         if: inputs.include-integration-tests != true
         shell: bash -l {0}
-        run: mix test --timeout ${{ inputs.mix-test-timeout }}
+        run: mise x elixir@${{ steps.beam.outputs.elixir-version }} erlang@${{ steps.beam.outputs.otp-version }} rebar -- mix test --timeout ${{ inputs.mix-test-timeout }}
 
       - name: Run Tests incl. integration tests
         if: inputs.include-integration-tests == true
         shell: bash -l {0}
-        run: mix test --include integration --timeout ${{ inputs.mix-test-timeout }}
+        run: mise x elixir@${{ steps.beam.outputs.elixir-version }} erlang@${{ steps.beam.outputs.otp-version }} rebar -- mix test --include integration --timeout ${{ inputs.mix-test-timeout }}

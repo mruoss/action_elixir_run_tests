@@ -56,17 +56,7 @@ jobs:
         if: inputs.with-kubernetes == true
         id: kind
         run: |
-          mise install kind
-          kind create cluster --image $KUBERNETES_NODE_IMAGE
-
-      - name: Setup elixir
-        id: beam
-        uses: erlef/setup-beam@v1
-        with:
-          version-file: .tool-versions
-          version-type: strict
-          install-rebar: true
-          install-hex: true
+          mise x kind -- kind create cluster --image $KUBERNETES_NODE_IMAGE
 
       - name: Retrieve Build Cache
         uses: actions/cache@v4
@@ -94,27 +84,30 @@ jobs:
           path: |
             priv/plts
 
+      - name: Install Hex
+        run: mise x elixir erlang rebar -- mix local.hex --force
+
       - name: Install Mix Dependencies
-        run: mix deps.get
+        run: mise x elixir erlang rebar -- mix deps.get
 
       - name: Check Formatting
         if: inputs.check-formatting != false
         shell: bash -l {0}
-        run: mix format --check-formatted
+        run: mise x elixir erlang rebar -- mix format --check-formatted
 
       - name: Run Credo (Strict)
         if: inputs.run-credo == 'strict'
         shell: bash -l {0}
-        run: mix credo --strict
+        run: mise x elixir erlang rebar -- mix credo --strict
 
       - name: Run Credo (Not Strict)
         if: "inputs.run-credo != 'strict' && inputs.run-credo != false"
         shell: bash -l {0}
-        run: mix credo
+        run: mise x elixir erlang rebar -- nix credo
 
       - name: Run Coverage
         shell: bash -l {0}
-        run: mix coveralls.github --include integration --timeout ${{ inputs.mix-test-timeout }}
+        run: mise x elixir erlang rebar -- mix coveralls.github --include integration --timeout ${{ inputs.mix-test-timeout }}
 
       # Create PLTs if no cache was found
       - name: Create PLTs
@@ -122,9 +115,9 @@ jobs:
         shell: bash -l {0}
         run: |
           mkdir -p priv/plts
-          mix dialyzer --plt
+          mise x elixir erlang rebar -- mix dialyzer --plt
 
       - name: Run dialyzer
         if: inputs.run-dialyzer == true
         shell: bash -l {0}
-        run: mix dialyzer --format github
+        run: mise x elixir erlang rebar -- mix dialyzer --format github
