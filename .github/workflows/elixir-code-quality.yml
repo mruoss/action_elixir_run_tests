@@ -59,14 +59,14 @@ jobs:
           mise x kind -- kind create cluster --image $KUBERNETES_NODE_IMAGE
 
       - name: Retrieve Build Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         id: build-folder-cache
         with:
           path: _build
           key: ${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-build-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Retrieve Mix Dependencies Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         id: mix-cache
         with:
           path: deps
@@ -74,7 +74,7 @@ jobs:
 
       - name: Retrieve PLT Cache
         if: inputs.run-dialyzer == true
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         id: plt-cache
         with:
           key: |
