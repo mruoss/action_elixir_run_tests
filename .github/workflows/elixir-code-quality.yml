@@ -46,11 +46,15 @@ jobs:
         if: inputs.checkout != false
 
       - name: Setup Mise JDX
+        id: mise
         run: |
           curl https://mise.run | sh
           echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
           echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
           echo "eval \"\$(mise activate bash)\"" >> ~/.bash_profile
+          mise install erlang elixir
+          echo "otp-version=$(mise current erlang | tr -d '\n')" >> "$GITHUB_OUTPUT"
+          echo "elixir-version=$(mise current elixir | tr -d '\n')" >> "$GITHUB_OUTPUT"
 
       - name: Setup Kubernetes (Kind)
         if: inputs.with-kubernetes == true
@@ -63,14 +67,14 @@ jobs:
         id: build-folder-cache
         with:
           path: _build
-          key: ${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-build-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: ${{ runner.os }}-${{ steps.mise.outputs.otp-version }}-${{ steps.mise.outputs.elixir-version }}-build-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Retrieve Mix Dependencies Cache
         uses: actions/cache@v5
         id: mix-cache
         with:
           path: deps
-          key: ${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: ${{ runner.os }}-${{ steps.mise.outputs.otp-version }}-${{ steps.mise.outputs.elixir-version }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Retrieve PLT Cache
         if: inputs.run-dialyzer == true
@@ -78,9 +82,9 @@ jobs:
         id: plt-cache
         with:
           key: |
-            ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-plts
+            ${{ runner.os }}-${{ steps.mise.outputs.elixir-version }}-${{ steps.mise.outputs.otp-version }}-plts
           restore-keys: |
-            ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-plts
+            ${{ runner.os }}-${{ steps.mise.outputs.elixir-version }}-${{ steps.mise.outputs.otp-version }}-plts
           path: |
             priv/plts
 

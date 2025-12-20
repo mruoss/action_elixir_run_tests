@@ -74,6 +74,9 @@ jobs:
           echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
           echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
           echo "eval \"\$(mise activate bash)\"" >> ~/.bash_profile
+          mise install erlang elixir
+          echo "otp-version=$(mise current erlang | tr -d '\n')" >> "$GITHUB_OUTPUT"
+          echo "elixir-version=$(mise current elixir | tr -d '\n')" >> "$GITHUB_OUTPUT"
 
       - name: Setup Kubernetes (Kind)
         if: inputs.with-kubernetes == true
@@ -86,29 +89,29 @@ jobs:
         id: build-folder-cache
         with:
           path: _build
-          key: ${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-build-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: ${{ runner.os }}-${{ steps.mise.outputs.otp-version }}-${{ steps.mise.outputs.elixir-version }}-build-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Retrieve Mix Dependencies Cache
         uses: actions/cache@v5
         id: mix-cache
         with:
           path: deps
-          key: ${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-build-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: ${{ runner.os }}-${{ steps.mise.outputs.otp-version }}-${{ steps.mise.outputs.elixir-version }}-build-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Install Hex
-        run: mise x elixir@${{ steps.beam.outputs.elixir-version }} erlang@${{ steps.beam.outputs.otp-version }} rebar -- mix local.hex --force
+        run: mise x elixir@${{ steps.mise.outputs.elixir-version }} erlang@${{ steps.mise.outputs.otp-version }} rebar -- mix local.hex --force
 
       - name: Install Mix Dependencies
-        run: mise x elixir@${{ steps.beam.outputs.elixir-version }} erlang@${{ steps.beam.outputs.otp-version }} rebar -- mix deps.get
+        run: mise x elixir@${{ steps.mise.outputs.elixir-version }} erlang@${{ steps.mise.outputs.otp-version }} rebar -- mix deps.get
 
       - name: Compile Application / Library
-        run: mise x elixir@${{ steps.beam.outputs.elixir-version }} erlang@${{ steps.beam.outputs.otp-version }} rebar -- mix compile --warnings-as-errors
+        run: mise x elixir@${{ steps.mise.outputs.elixir-version }} erlang@${{ steps.mise.outputs.otp-version }} rebar -- mix compile --warnings-as-errors
         if: inputs.warnings-as-errors == true
         env:
           MIX_ENV: ${{ inputs.compile-for }}
 
       - name: Compile Application / Library
-        run: mise x elixir@${{ steps.beam.outputs.elixir-version }} erlang@${{ steps.beam.outputs.otp-version }} rebar -- mix compile
+        run: mise x elixir@${{ steps.mise.outputs.elixir-version }} erlang@${{ steps.mise.outputs.otp-version }} rebar -- mix compile
         if: inputs.warnings-as-errors != true
         env:
           MIX_ENV: ${{ inputs.compile-for }}
@@ -116,9 +119,9 @@ jobs:
       - name: Run Tests
         if: inputs.include-integration-tests != true
         shell: bash -l {0}
-        run: mise x elixir@${{ steps.beam.outputs.elixir-version }} erlang@${{ steps.beam.outputs.otp-version }} rebar -- mix test --timeout ${{ inputs.mix-test-timeout }}
+        run: mise x elixir@${{ steps.mise.outputs.elixir-version }} erlang@${{ steps.mise.outputs.otp-version }} rebar -- mix test --timeout ${{ inputs.mix-test-timeout }}
 
       - name: Run Tests incl. integration tests
         if: inputs.include-integration-tests == true
         shell: bash -l {0}
-        run: mise x elixir@${{ steps.beam.outputs.elixir-version }} erlang@${{ steps.beam.outputs.otp-version }} rebar -- mix test --include integration --timeout ${{ inputs.mix-test-timeout }}
+        run: mise x elixir@${{ steps.mise.outputs.elixir-version }} erlang@${{ steps.mise.outputs.otp-version }} rebar -- mix test --include integration --timeout ${{ inputs.mix-test-timeout }}
