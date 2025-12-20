@@ -44,13 +44,18 @@ jobs:
       matrix:
         # See https://hexdocs.pm/elixir/compatibility-and-deprecations.html#compatibility-between-elixir-and-erlang-otp
         otp: ["24", "25", "26", "27", "28"]
-        elixir: ["1.15", "1.16", "1.17", "1.18"]
+        elixir: ["1.15", "1.16", "1.17", "1.18", "1.19"]
         exclude:
           # OTP 24
           - elixir: "1.17"
             otp: "24"
           - elixir: "1.18"
             otp: "24"
+          - elixir: "1.19"
+            otp: "24"
+          # OTP 25
+          - elixir: "1.19"
+            otp: "25"
           # OTP 27
           - elixir: "1.15"
             otp: "27"
