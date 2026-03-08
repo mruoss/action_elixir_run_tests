@@ -107,6 +107,7 @@ jobs:
         if: inputs.checkout != false
 
       - name: Setup Mise JDX
+        id: mise
         run: |
           curl https://mise.run | sh
           echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
