@@ -24,6 +24,16 @@ on:
         description: "Sets the timeout on the mix test call (ms)."
         type: number
         default: 60000
+      extra_excludes:
+        description: |
+          Additional matrix exclusions in YAML format, e.g.:
+            - elixir: "1.15"
+              otp: "23"
+            - elixir: "1.16"
+              otp: "23"
+        type: string
+        required: false
+        default: ""
     secrets:
       token:
         description: "The github token"
@@ -36,6 +46,50 @@ env:
   MISE_ENV: ci
   GITHUB_TOKEN: ${{ secrets.token }}
 jobs:
+  prepare_matrix:
+    runs-on: ubuntu-latest
+    env:
+      BASE_EXCLUDES: |
+        # OTP 24
+        - elixir: "1.17"
+          otp: "24"
+        - elixir: "1.18"
+          otp: "24"
+        - elixir: "1.19"
+          otp: "24"
+        # OTP 25
+        - elixir: "1.19"
+          otp: "25"
+        # OTP 27
+        - elixir: "1.15"
+          otp: "27"
+        - elixir: "1.16"
+          otp: "27"
+        # OTP 28
+        - elixir: "1.15"
+          otp: "28"
+        - elixir: "1.16"
+          otp: "28"
+        - elixir: "1.17"
+          otp: "28"
+    outputs:
+      matrix: ${{ steps.build.outputs.matrix }}
+    steps:
+      - id: build
+        env:
+          EXTRA_EXCLUDES: ${{ inputs.extra_excludes }}
+        run: |
+          if [ -z "$EXTRA_EXCLUDES" ]; then
+            MERGED=$(echo "$BASE_EXCLUDES" | yq -o=json)
+          else
+            MERGED=$(yq eval-all '. as $item ireduce([]; . + $item)' \
+              <(echo "$BASE_EXCLUDES") \
+              <(echo "$EXTRA_EXCLUDES") \
+              | yq -o=json)
+          fi
+
+          echo "matrix=$(echo "{}" | yq ".exclude = $MERGED" -o=json)" >> $GITHUB_OUTPUT
+
   elixir-test:
     runs-on: ubuntu-latest
     name: Test - OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
@@ -45,29 +99,8 @@ jobs:
         # See https://hexdocs.pm/elixir/compatibility-and-deprecations.html#compatibility-between-elixir-and-erlang-otp
         otp: ["24", "25", "26", "27", "28"]
         elixir: ["1.15", "1.16", "1.17", "1.18", "1.19"]
-        exclude:
-          # OTP 24
-          - elixir: "1.17"
-            otp: "24"
-          - elixir: "1.18"
-            otp: "24"
-          - elixir: "1.19"
-            otp: "24"
-          # OTP 25
-          - elixir: "1.19"
-            otp: "25"
-          # OTP 27
-          - elixir: "1.15"
-            otp: "27"
-          - elixir: "1.16"
-            otp: "27"
-          # OTP 28
-          - elixir: "1.15"
-            otp: "28"
-          - elixir: "1.16"
-            otp: "28"
-          - elixir: "1.17"
-            otp: "28"
+        exclude: ${{ fromJSON(needs.prepare_matrix.outputs.matrix).exclude }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.2
