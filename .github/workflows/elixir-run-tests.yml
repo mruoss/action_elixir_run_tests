@@ -57,9 +57,16 @@ jobs:
           otp: "24"
         - elixir: "1.19"
           otp: "24"
+        - elixir: "1.20"
+          otp: "24"
         # OTP 25
         - elixir: "1.19"
           otp: "25"
+        - elixir: "1.20"
+          otp: "25"
+        # OTP 26
+        - elixir: "1.20"
+          otp: "26"
         # OTP 27
         - elixir: "1.15"
           otp: "27"
@@ -72,6 +79,17 @@ jobs:
           otp: "28"
         - elixir: "1.17"
           otp: "28"
+        # OTP 29
+        - elixir: "1.15"
+          otp: "29"
+        - elixir: "1.16"
+          otp: "29"
+        - elixir: "1.17"
+          otp: "29"
+        - elixir: "1.18"
+          otp: "29"
+        - elixir: "1.19"
+          otp: "29"
     outputs:
       matrix: ${{ steps.build.outputs.matrix }}
     steps:
@@ -99,8 +117,8 @@ jobs:
       fail-fast: false
       matrix:
         # See https://hexdocs.pm/elixir/compatibility-and-deprecations.html#compatibility-between-elixir-and-erlang-otp
-        otp: ["24", "25", "26", "27", "28"]
-        elixir: ["1.15", "1.16", "1.17", "1.18", "1.19"]
+        otp: ["24", "25", "26", "27", "28", "29"]
+        elixir: ["1.15", "1.16", "1.17", "1.18", "1.19"] # todo: add 1.20 as soon as it is out.
         exclude: ${{ fromJSON(needs.prepare_matrix.outputs.matrix).exclude }}
 
     steps:
@@ -115,7 +133,7 @@ jobs:
           echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
           echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
           echo "eval \"\$(mise activate bash)\"" >> ~/.bash_profile
-          mise install erlang elixir
+          mise use erlang@${{ matrix.otp }} elixir@${{ matrix.elixir }}-otp-${{ matrix.otp }}
           echo "otp-version=$(mise current erlang | tr -d '\n')" >> "$GITHUB_OUTPUT"
           echo "elixir-version=$(mise current elixir | tr -d '\n')" >> "$GITHUB_OUTPUT"
 
