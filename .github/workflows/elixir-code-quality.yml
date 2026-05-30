@@ -105,7 +105,7 @@ jobs:
         run: mise x elixir erlang rebar -- mix credo --strict
 
       - name: Run Credo (Not Strict)
-        if: "inputs.run-credo != 'strict' && inputs.run-credo != false"
+        if: "inputs.run-credo != 'strict' && inputs.run-credo != 'false'"
         shell: bash -l {0}
         run: mise x elixir erlang rebar -- mix credo
 
