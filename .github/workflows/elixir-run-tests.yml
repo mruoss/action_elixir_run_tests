@@ -144,14 +144,14 @@ jobs:
           mise x kind -- kind create cluster --image kindest/node:$KUBERNETES_NODE_VERSION
 
       - name: Retrieve Build Cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         id: build-folder-cache
         with:
           path: _build
           key: ${{ runner.os }}-${{ steps.mise.outputs.otp-version }}-${{ steps.mise.outputs.elixir-version }}-build-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Retrieve Mix Dependencies Cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         id: mix-cache
         with:
           path: deps
