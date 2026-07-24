@@ -118,7 +118,7 @@ jobs:
       matrix:
         # See https://hexdocs.pm/elixir/compatibility-and-deprecations.html#compatibility-between-elixir-and-erlang-otp
         otp: ["24", "25", "26", "27", "28", "29"]
-        elixir: ["1.15", "1.16", "1.17", "1.18", "1.19"] # todo: add 1.20 as soon as it is out.
+        elixir: ["1.15", "1.16", "1.17", "1.18", "1.19", "1.20"]
         exclude: ${{ fromJSON(needs.prepare_matrix.outputs.matrix).exclude }}
 
     steps:
